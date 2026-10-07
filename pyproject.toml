@@ -1,0 +1,21 @@
+[project]
+name = "agents-workflow-project-rl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "raniamehria", email = "rania.mehria.pro@gmail.com" }
+]
+requires-python = ">=3.11.6"
+dependencies = [
+    "google-cloud-aiplatform>=2.4.0",
+    "google-cloud-bigquery>=3.46.1",
+    "google-cloud-storage>=3.16.0",
+]
+
+[project.scripts]
+agents-workflow-project-rl = "agents_workflow_project_rl:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
