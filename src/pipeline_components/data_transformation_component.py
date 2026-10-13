@@ -1,56 +1,62 @@
-import json
-
-import pandas as pd
-from datasets import Dataset
+from kfp import dsl
+from kfp.dsl import OutputPath
 
 
-def load_data(gcs_path: str) -> pd.DataFrame:
-    """Lit le fichier CSV depuis Google Cloud Storage."""
-    df = pd.read_csv(gcs_path)
-    return df
+@dsl.component(
+    base_image="python:3.11-slim",
+    packages_to_install=["pandas", "gcsfs", "datasets"],
+)
+def data_transformation_component(
+    raw_dataset_uri: str,
+    train_dataset_path: OutputPath("Dataset"),
+    test_dataset_path: OutputPath("Dataset"),
+    test_size: float = 0.1,
+    seed: int = 42,
+):
+    """Lit le dataset Yoda, le met en format conversation, le découpe et l'écrit."""
+    import json
+    import logging
 
+    import pandas as pd
+    from datasets import Dataset
 
-def to_conversation(example: dict) -> dict:
-    """Transforme une ligne du fichier en mini-conversation user -> assistant."""
-    return {
-        "messages": [
-            {"role": "user", "content": example["sentence"]},
-            {"role": "assistant", "content": example["translation_extra"]},
-        ]
-    }
+    logging.basicConfig(level=logging.INFO, force=True)
+    logger = logging.getLogger("data_transformation")
 
+    def to_conversation(example: dict) -> dict:
+        return {
+            "messages": [
+                {"role": "user", "content": example["sentence"]},
+                {"role": "assistant", "content": example["translation_extra"]},
+            ]
+        }
 
-def format_dataset(df: pd.DataFrame) -> Dataset:
-    """Convertit le tableau pandas en Dataset Hugging Face au format conversation."""
+    def save_dataset_as_csv(dataset: Dataset, path: str) -> None:
+        rows = [json.dumps(conversation) for conversation in dataset["messages"]]
+        pd.DataFrame({"messages": rows}).to_csv(path, index=False)
+
+    logger.info("Loading raw dataset from %s", raw_dataset_uri)
+    df = pd.read_csv(raw_dataset_uri)
+    logger.info("Loaded %d rows with columns %s", len(df), list(df.columns))
+
     dataset = Dataset.from_pandas(df)
     dataset = dataset.map(to_conversation, remove_columns=dataset.column_names)
-    return dataset
+    logger.info("Formatted %d conversations", len(dataset))
 
-
-def split_dataset(dataset: Dataset, test_size: float = 0.1, seed: int = 42):
-    """Découpe le Dataset en deux : un paquet train et un paquet test."""
     splits = dataset.train_test_split(test_size=test_size, seed=seed)
-    return splits["train"], splits["test"]
+    train_dataset, test_dataset = splits["train"], splits["test"]
+    logger.info("Split into %d train / %d test rows", len(train_dataset), len(test_dataset))
 
-
-def save_dataset_as_csv(dataset: Dataset, path: str) -> None:
-    """Écrit un Dataset en CSV, chaque conversation étant stockée en JSON."""
-    rows = [json.dumps(conversation) for conversation in dataset["messages"]]
-    pd.DataFrame({"messages": rows}).to_csv(path, index=False)
-
-
-def save_datasets(train_dataset: Dataset, test_dataset: Dataset, train_path: str, test_path: str) -> None:
-    """Écrit les deux paquets dans des fichiers CSV."""
-    save_dataset_as_csv(train_dataset, train_path)
-    save_dataset_as_csv(test_dataset, test_path)
+    save_dataset_as_csv(train_dataset, train_dataset_path)
+    save_dataset_as_csv(test_dataset, test_dataset_path)
+    logger.info("Saved train to %s and test to %s", train_dataset_path, test_dataset_path)
 
 
 if __name__ == "__main__":
     from src.constants import RAW_DATASET_URI
 
-    df = load_data(RAW_DATASET_URI)
-    dataset = format_dataset(df)
-    train_dataset, test_dataset = split_dataset(dataset)
-    print("Train :", len(train_dataset))
-    print("Test :", len(test_dataset))
-    save_datasets(train_dataset, test_dataset, "train_local.csv", "test_local.csv")
+    data_transformation_component.python_func(
+        raw_dataset_uri=RAW_DATASET_URI,
+        train_dataset_path="train_local.csv",
+        test_dataset_path="test_local.csv",
+    )
