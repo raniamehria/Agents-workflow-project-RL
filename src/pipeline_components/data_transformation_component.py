@@ -4,12 +4,17 @@ from kfp.dsl import OutputPath
 
 @dsl.component(
     base_image="python:3.11-slim",
-    packages_to_install=["pandas", "gcsfs", "datasets"],
+    packages_to_install=[
+		"pandas",
+		"gcsfs",
+        "datasets>=2.20.0",  # 2.20.0+ removed the PyExtensionType reference
+        "pyarrow>=15.0.0",   # datasets>=2.20.0 requires pyarrow>=15
+        ],
 )
 def data_transformation_component(
     raw_dataset_uri: str,
-    train_dataset_path: OutputPath("Dataset"),
-    test_dataset_path: OutputPath("Dataset"),
+    train_dataset_path: OutputPath(str),
+    test_dataset_path: OutputPath(str),
     test_size: float = 0.1,
     seed: int = 42,
 ):
