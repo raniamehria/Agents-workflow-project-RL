@@ -20,3 +20,6 @@ pipeline.yaml
 # Local test outputs
 train_local.csv
 test_local.csv
+
+# MacOS
+.DS_Store
