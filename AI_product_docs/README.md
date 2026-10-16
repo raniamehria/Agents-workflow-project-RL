@@ -1,4 +1,4 @@
-# [Team name] — [your agent in five words]
+# Team CyberSLA (Luli, Rania, Wei-Ling, Chanelle) — SLA-aware cybersecurity prioritisation
 
 **Course:** Data & AI Product: From Diagnosis to Delivery (MSA-DAT07-04) · Albert School · shared project with Agentic Workflows
 **Cohort:** M2-INTER-2
@@ -13,19 +13,19 @@
 
 ## Our agent
 - **Starting point:** P7: SLA-aware prioritisation — cybersecurity SaaS (see `00_pitch.md`)
-- **The company:** [type of B2B SaaS, number of customers, tickets per month, support team size]
-- **The job, in one sentence:** When [trigger], the agent [does], producing [outcome].
-- **Trust level per step:** [e.g. L3 on documentation questions, L1 (human only) on anything with an amount]
-- **One thing it must never do:** [your first guardrail]
+- **The company:** B2B cybersecurity SaaS, 500 enterprise customers, 20,000 alerts/month, support team of 40 security analysts
+- **The job, in one sentence:** When a new security alert arrives, the agent prioritises it based on SLA deadlines and severity, producing a ranked queue for analysts.
+- **Trust level per step:** L2 on customer-facing responses (drafts only, human approves), L4 on internal prioritisation queue (autonomous reordering, but human confirms severity and closure)
+- **One thing it must never do:** Never autonomously close a security incident or mark an alert as false positive without human confirmation
 
 ## Repository structure
 One numbered file per session. Every member authors commits in at least four of the numbered files.
 
 | File | Session | Status |
 |---|---|---|
-| `00_pitch.md` | before S3 — only if you bring your own idea | |
-| `01_problem_statement.md` | S1–S2 — Assignment 1 | |
-| `governance.md` | created for Assignment 1, one line added every session | |
+| `00_pitch.md` | before S3 — only if you bring your own idea | DONE |
+| `01_problem_statement.md` | S1–S2 — Assignment 1 | DONE |
+| `governance.md` | one line added every session, Done for Session 1 and 2 | WIP |
 | `02_sizing.xlsx` | S2 — Assignment 2 | |
 | `02_investment_memo.md` | S2 — Assignment 2 | |
 | `03_product_brief.md` | S3 | |
